@@ -24,6 +24,12 @@ body {
   padding-top: 50px;
 }
 
+img {
+  max-width: 300px;
+  padding: 5px;
+}
+
+
 .site-title {
   font-size: 22px;
   font-weight: 500;
@@ -37,13 +43,13 @@ body {
 
 .chat-window {
   height: 360px;
-  border: 1px solid #000;
-  padding: 20px;
+  filter: drop-shadow(12px 5px 17px #c6c6c6);  padding: 20px;
   font-size: 18px;
   line-height: 1.5;
   overflow-y: auto;
-  background: #fafafa;
+  background: white;
   white-space: pre-line;
+  border-radius: 20px;
 }
 
 /* messages */
@@ -64,18 +70,18 @@ body {
 .chat-form {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 30px;
 }
 
 .chat-form input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #ababab;
   font-size: 18px;
 }
 
 .chat-form input:focus {
-  outline: 2px solid #000;
+  outline: 2px solid #e3af35;
   outline-offset: 2px;
 }
 
