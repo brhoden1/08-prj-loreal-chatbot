@@ -32,10 +32,12 @@ chatForm.addEventListener("submit", async (e) => {
       },
       body: JSON.stringify({
         model: "gpt-4.1",
-        messages: [{ role: "user", content: userText }],
-        max_completion_tokens: 350,
-        temperature: 0.5,
-        frequency_penalty: 0.5
+        messages: [
+          { role: 'system', content: "You are a friendly, fun, and helpful assistant. You will answer questions about L'Oréal products and services. If a user's question is unrelated to L'Oréal, please politely redirect them to the topic." },
+          { role: "user", content: userText }],
+        max_completion_tokens: 300,
+        temperature: 0.3,
+        frequency_penalty: 0.7
       }),
     });
 
