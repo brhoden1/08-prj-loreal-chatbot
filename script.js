@@ -3,8 +3,23 @@ const chatForm = document.getElementById("chatForm");
 const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
 
+const conversationMessages = [
+  {
+    role: "system",
+    content:
+      "You are a friendly, fun, and helpful assistant. You will answer questions about L'Oréal products and services. Ask relevant questions to continue the conversation, or otherwise offer more help. Include emojis if appropriate. If a user's question is unrelated to L'Oréal, please politely redirect them to the topic.",
+  },
+  {
+    role: "assistant",
+    content: "Hello! Ask me about L'Oréal products or routines.",
+  },
+];
+
 // Set initial message
-chatWindow.textContent = "👋 Hello! How can I help you today?";
+renderMessages();
+
+//Cloudfare Worker URL
+const workerUrl = 'https://loreal-chatbot-worker.brhoden1.workers.dev/';
 
 /* Handle form submit */
 chatForm.addEventListener("submit", async (e) => {
@@ -13,43 +28,72 @@ chatForm.addEventListener("submit", async (e) => {
   const userText = userInput.value.trim();
   if (!userText) return;
 
-  // Show a loading message while the API responds
-  chatWindow.textContent = "Thinking...";
+  userInput.value = "";
+  conversationMessages.push({ role: "user", content: userText });
+  renderMessages();
 
-  // Use the API key from secrets.js
-  const apiKey = window.apiKEY;
-  if (!apiKey) {
-    chatWindow.textContent = "The API key is not available yet.";
-    return;
-  }
+  // Show a loading message while the API responds
+  const loadingMessage = { role: "assistant", content: "Thinking..." };
+  conversationMessages.push(loadingMessage);
+  renderMessages();
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(workerUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4.1",
-        messages: [
-          { role: 'system', content: "You are a friendly, fun, and helpful assistant. You will answer questions about L'Oréal products and services. If a user's question is unrelated to L'Oréal, please politely redirect them to the topic." },
-          { role: "user", content: userText }],
-        max_completion_tokens: 300,
-        temperature: 0.3,
-        frequency_penalty: 0.7
+        messages: conversationMessages,
       }),
     });
 
     const data = await response.json();
 
     if (data.choices && data.choices[0]?.message?.content) {
-      chatWindow.textContent = data.choices[0].message.content;
+      const assistantReply = data.choices[0].message.content;
+      conversationMessages.splice(
+        conversationMessages.indexOf(loadingMessage),
+        1,
+      );
+      conversationMessages.push({ role: "assistant", content: assistantReply });
+      renderMessages();
     } else {
-      chatWindow.textContent = "No response received from the API.";
+      conversationMessages.splice(
+        conversationMessages.indexOf(loadingMessage),
+        1,
+      );
+      conversationMessages.push({
+        role: "assistant",
+        content: "No response received from the API.",
+      });
+      renderMessages();
     }
   } catch (error) {
-    chatWindow.textContent = "Sorry, something went wrong.";
+    conversationMessages.splice(
+      conversationMessages.indexOf(loadingMessage),
+      1,
+    );
+    conversationMessages.push({
+      role: "assistant",
+      content: "Sorry, something went wrong. Please try again later.",
+    });
+    renderMessages();
     console.error(error);
   }
 });
+
+function renderMessages() {
+  chatWindow.innerHTML = "";
+
+  conversationMessages
+    .filter((message) => message.role !== "system")
+    .forEach((message) => {
+      const bubble = document.createElement("div");
+      bubble.className = `msg ${message.role === "user" ? "user" : "ai"}`;
+      bubble.textContent = message.content;
+      chatWindow.appendChild(bubble);
+    });
+
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
